@@ -1,23 +1,89 @@
 from django.db import models
-from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import AbstractUser
+from django.utils.text import slugify
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+
+import random
+from unidecode import unidecode
 
 
-class User(AbstractBaseUser):
-    first_name = models.CharField('Имя', max_length=255)
-    last_name = models.CharField('Фамилия', max_length=255)
-    email = models.EmailField('Почта', max_length=255)
+class User(AbstractUser):
     phone = models.CharField('Телефон', max_length=255, blank=True)
     department = models.ForeignKey('department.Department', on_delete=models.SET_NULL, related_name='users',
                                    null=True, blank=True)
-    specializations = models.ManyToManyField('core.Specialization', through='UserSpecialization', related_name='users')
-    kpi = models.IntegerField('Общая эффективность')
+    perks = models.ManyToManyField('core.Perks', through='UserPerks', related_name='users')
+    kpi = models.IntegerField('Общая эффективность', null=True, blank=True)
+
+    def __unicode__(self):
+        return f'<Пользовать: {self.last_name} {self.first_name}>'
 
 
-class UserSpecialization(models.Model):
+@receiver(pre_save)
+def set_username(sender, instance, **kwargs):
+    if not hasattr(instance, 'first_name') or not hasattr(instance, 'last_name'):
+        return
+    fname, lname = unidecode(instance.first_name.lower()), unidecode(instance.last_name.lower())
+    fname, lname = slugify(fname)[:20], slugify(lname)[:20]
+    slug = '{}.{}'.format(fname[:1], lname)
+    j = 2
+    while User.objects.filter(username=slug).exists():
+        if len(fname) > j:
+            slug = '{}.{}'.format(fname[:j], lname)
+            j += 1
+        else:
+            random_word = random_syllable() + random_syllable()
+            slug = '{}.{}'.format(lname, random_word)
+    if not instance.username:
+        instance.username = slug
+
+
+class UserPerks(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
-    abilities = models.ForeignKey('core.Specialization', on_delete=models.CASCADE)
+    perk = models.ForeignKey('core.Perks', on_delete=models.CASCADE)
     effectivity = models.IntegerField('Эффективность')
+
+    def __unicode__(self):
+        return f'<Эффективность: {self.user} в {self.perk}>'
 
     class Meta:
         verbose_name = 'способность пользователя'
         verbose_name_plural = 'способности пользователя'
+
+
+en_vowel_frequency = [
+    ('a', 82), ('e', 127), ('i', 70), ('o', 75), ('u', 27), ('y', 20),
+]
+en_consonant_frequency = [
+    ('b', 15), ('c', 28), ('d', 43), ('f', 22), ('g', 20), ('h', 61), ('j', 1), ('k', 7), ('l', 40),
+    ('m', 24), ('n', 68), ('p', 19), ('q', 1), ('r', 60), ('s', 63), ('t', 90), ('v', 10), ('w', 24),
+    ('x', 1), ('z', 1),
+]
+
+
+def random_letter(is_vowel):
+    if is_vowel:
+        letters = en_vowel_frequency
+        num = random.randint(1, 401)
+    else:
+        letters = en_consonant_frequency
+        num = random.randint(1, 598)
+
+    counter = 0
+    for letter in letters:
+        if counter <= num <= counter + letter[1]:
+            return letter[0]
+        counter += letter[1]
+    return '*'
+
+
+def random_syllable():
+    case = random.randint(0, 2)
+    syllable = ""
+    if case == 0:
+        syllable = random_letter(True) + random_letter(False)
+    if case == 1:
+        syllable = random_letter(False) + random_letter(True)
+    if case == 2:
+        syllable = random_letter(False) + random_letter(True) + random_letter(False)
+    return syllable

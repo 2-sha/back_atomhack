@@ -7,7 +7,10 @@ class Task(models.Model):
     department = models.ForeignKey('department.Department', on_delete=models.SET_NULL, related_name='tasks',
                                    null=True, blank=True)
     user = models.ForeignKey('user.User', on_delete=models.SET_NULL, related_name='tasks', null=True, blank=True)
-    specializations = models.ManyToManyField('core.Specialization', related_name='tasks')
+    tags = models.ManyToManyField('core.Tags', related_name='tasks', blank=True)
+
+    def __str__(self):
+        return f'<Задача: {self.title}>'
 
     class Meta:
         verbose_name = 'задача'
