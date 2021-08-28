@@ -7,7 +7,7 @@ class Department(models.Model):
                                related_name='children', null=True, blank=True, default=None)
 
     def __str__(self):
-        return f'<Департамент: {self.name}>'
+        return self.name
 
     class Meta:
         verbose_name = 'департамент'

@@ -5,7 +5,7 @@ from user.models import User
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['get_full_name', 'department', 'kpi']
+    list_display = ['get_full_name', 'department', 'get_tasks_num', 'kpi']
 
     def get_full_name(self, obj):
         if obj.first_name or obj.last_name:
@@ -13,3 +13,9 @@ class UserAdmin(admin.ModelAdmin):
         else:
             return '-'
     get_full_name.short_description = 'Имя'
+
+    def get_tasks_num(self, obj):
+        if obj.tasks:
+            return obj.tasks.count()
+        return 0
+    get_tasks_num.short_description = 'Кол-во задач'

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from core.models import Perks, Tags
+from core.models import Perks, Tag
 
 
 @admin.register(Perks)
@@ -8,7 +8,7 @@ class SpecializationAdmin(admin.ModelAdmin):
     search_fields = ('name', )
 
 
-@admin.register(Tags)
-class TagsAdmin(admin.ModelAdmin):
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ('name', )
