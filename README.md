@@ -8,7 +8,7 @@
 Они берут данные из DjangoORM
 
 ## Бэкенд
-По умолчанию стоит БД `atomhack` с пользователем `admin` и паролем `admin`. В `application/settings.py` можно поменять. 
+По умолчанию стоит СУБД `PostresSQL`, БД `atomhack` с пользователем `admin` и паролем `admin`. В `application/settings.py` можно поменять. 
 
 Можно войти в админку: `http://127.0.0.1:8000/admin/`
 
