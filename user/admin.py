@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from user.models import User
+from user.models import User, UserPerk
 
 
 @admin.register(User)
@@ -19,3 +19,8 @@ class UserAdmin(admin.ModelAdmin):
             return obj.tasks.count()
         return 0
     get_tasks_num.short_description = 'Кол-во задач'
+
+
+@admin.register(UserPerk)
+class UserPerkAdmin(admin.ModelAdmin):
+    list_display = ['user', 'perk', 'level']

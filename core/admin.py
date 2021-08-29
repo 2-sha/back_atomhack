@@ -1,9 +1,10 @@
 from django.contrib import admin
-from core.models import Perks, Tag
+from core.models import TagPerk, Perk, Tag
+from user.models import UserPerk
 
 
-@admin.register(Perks)
-class SpecializationAdmin(admin.ModelAdmin):
+@admin.register(Perk)
+class PerkAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ('name', )
 
@@ -12,3 +13,8 @@ class SpecializationAdmin(admin.ModelAdmin):
 class TagAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ('name', )
+
+
+@admin.register(TagPerk)
+class TagPerkAdmin(admin.ModelAdmin):
+    list_display = ['tag', 'perk', 'level']

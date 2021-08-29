@@ -14,8 +14,12 @@ class User(AbstractUser):
                                    null=True, blank=True, verbose_name='Департамент')
     position = models.CharField('Должность', max_length=255, blank=True)
     max_slots = models.IntegerField('Максмальное кол-во задач', default=6)
-    perks = models.ManyToManyField('core.Perks', verbose_name='Способности', through='UserPerks', related_name='users')
+    perks = models.ManyToManyField('core.Perk', verbose_name='Способности', through='UserPerk', related_name='users')
     kpi = models.FloatField('Общая эффективность', default=0.5)
+
+    @property
+    def name(self):
+        return f'{self.last_name} {self.first_name}'
 
     @property
     def workload(self):
@@ -26,7 +30,7 @@ class User(AbstractUser):
         return round(tasks / self.max_slots, 2)
 
     def __str__(self):
-        return f'{self.last_name} {self.first_name}'
+        return self.name
 
 
 @receiver(pre_save, sender=User)
@@ -46,10 +50,10 @@ def set_username(sender, instance, **kwargs):
         instance.username = slug
 
 
-class UserPerks(models.Model):
+class UserPerk(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
-    perk = models.ForeignKey('core.Perks', on_delete=models.CASCADE)
-    effectivity = models.IntegerField('Эффективность')
+    perk = models.ForeignKey('core.Perk', on_delete=models.CASCADE)
+    level = models.FloatField('Эффективность')
 
     def __unicode__(self):
         return f'<Эффективность: {self.user} в {self.perk}>'
