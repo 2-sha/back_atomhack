@@ -12,24 +12,31 @@ from user.models import User
 from department.models import Department
 
 
-class CustomPhoneProvider(Provider):
-    def phone_number(self):
-        while True:
-            phone_number = self.numerify(self.random_element(self.formats))
-            parsed_number = phonenumbers.parse(phone_number, 'US')
-            if phonenumbers.is_valid_number(parsed_number):
-                return phonenumbers.format_number(
-                    parsed_number,
-                    phonenumbers.PhoneNumberFormat.E164
-                )
-
-
-def random_char(char_num):
-    return ''.join(random.choice(string.ascii_letters) for _ in range(char_num))
-
-
 class Command(BaseCommand):
     help = 'Генерирует сортрудников и распределяет их по департаментам'
+
+    POSITIONS = [
+        'Сотрудник',
+        'Стажёр',
+        'Старший сотрудник',
+        'Курьер',
+        'Курьер',
+    ]
+
+    class CustomPhoneProvider(Provider):
+        def phone_number(self):
+            while True:
+                phone_number = self.numerify(self.random_element(self.formats))
+                parsed_number = phonenumbers.parse(phone_number, 'US')
+                if phonenumbers.is_valid_number(parsed_number):
+                    return phonenumbers.format_number(
+                        parsed_number,
+                        phonenumbers.PhoneNumberFormat.NATIONAL
+                    )
+
+    @staticmethod
+    def random_char(char_num):
+        return ''.join(random.choice(string.ascii_letters) for _ in range(char_num))
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -48,12 +55,17 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         it = RussianNames(count=options.get('num'), patronymic=False)
         fake = Faker()
-        fake.add_provider(CustomPhoneProvider)
+        fake.add_provider(self.CustomPhoneProvider)
         department_num = Department.objects.count() - 1
         for name in it:
             first_name, last_name = name.split(' ')
-            user = User(first_name=first_name, last_name=last_name, phone=fake.phone_number(),
-                        email=f'{random_char(7)}@mail.ru')
+
+            user = User(
+                first_name=first_name, last_name=last_name,
+                phone=fake.phone_number(), email=f'{self.random_char(7)}@mail.ru',
+                kpi=round(random.random(), 2), position=random.choice(self.POSITIONS)
+            )
+
             if options.get('assign') and department_num:
                 user.department = Department.objects.all().exclude(Q(parent__isnull=True) | Q(parent__parent__isnull=True))\
                     .annotate(num_users=Count('users')).order_by('num_users').first()

@@ -12,9 +12,18 @@ class User(AbstractUser):
     phone = models.CharField('Телефон', max_length=255, blank=True)
     department = models.ForeignKey('department.Department', on_delete=models.SET_NULL, related_name='users',
                                    null=True, blank=True, verbose_name='Департамент')
-    # max_slots = models.IntegerField('Максмальное кол-во задач', default=6)
+    position = models.CharField('Должность', max_length=255, blank=True)
+    max_slots = models.IntegerField('Максмальное кол-во задач', default=6)
     perks = models.ManyToManyField('core.Perks', verbose_name='Способности', through='UserPerks', related_name='users')
-    kpi = models.IntegerField('Общая эффективность', null=True, blank=True)
+    kpi = models.FloatField('Общая эффективность', default=0.5)
+
+    @property
+    def workload(self):
+        if self.tasks.count():
+            tasks = self.tasks.count()
+        else:
+            return 0
+        return round(tasks / self.max_slots, 2)
 
     def __str__(self):
         return f'{self.last_name} {self.first_name}'

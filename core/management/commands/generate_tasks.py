@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from django.db.models import Count
+from django.db.models import Count, F
 
 from faker import Faker
 from random import randint
@@ -47,6 +47,10 @@ class Command(BaseCommand):
 
             if options.get('assign') and users_num:
                 # Назначаем задачу любому из 10 самых свободных
-                task.user = User.objects.all()\
-                    .annotate(num_tasks=Count('tasks')).order_by('num_tasks')[randint(0, min(users_num, 10))]
-                task.save(update_fields=['user', 'department'])
+                user = User.objects.all()\
+                    .annotate(num_tasks=Count('tasks'))\
+                    .filter(num_tasks__lte=F('max_slots'))\
+                    .order_by('num_tasks')
+                if user.exists():
+                    task.user = user[randint(0, min(users_num, 10))]
+                    task.save(update_fields=['user', 'department'])
