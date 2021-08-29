@@ -13,7 +13,9 @@ class Department(models.Model):
         for user in self.users.all():
             n += 1
             workload_sum += user.workload
-        return round(workload_sum / n, 2)
+        if n:
+            return round(workload_sum / n, 2)
+        return 0
 
     @property
     def kpi(self):
@@ -22,7 +24,9 @@ class Department(models.Model):
         for user in self.users.all():
             n += 1
             kpi_sum += user.kpi
-        return round(kpi_sum / n, 2)
+        if n:
+            return round(kpi_sum / n, 2)
+        return 0
 
     def __str__(self):
         return self.name
